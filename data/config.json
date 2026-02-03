@@ -1,0 +1,34 @@
+{
+  "stocks": [
+    {
+      "code": "600519",
+      "name": "sss"
+    }
+  ],
+  "rules": [
+    {
+      "id": "4e624d15-2af5-48cc-b666-8cc262519b08",
+      "name": "11",
+      "type": "price_above_ma",
+      "enabled": true,
+      "level": "info",
+      "stock_code": "600519",
+      "kline_type": "15min",
+      "period": 60
+    }
+  ],
+  "notifiers": {
+    "serverchan": {
+      "enabled": false,
+      "send_key": ""
+    },
+    "feishu": {
+      "enabled": false,
+      "webhook": ""
+    },
+    "dingtalk": {
+      "enabled": false,
+      "webhook": ""
+    }
+  }
+}

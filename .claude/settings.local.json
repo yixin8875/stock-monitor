@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__exa__get_code_context_exa",
+      "Bash(go mod init:*)",
+      "Bash(go mod tidy:*)",
+      "Bash(go build:*)",
+      "Bash(./monitor:*)",
+      "Bash(curl:*)",
+      "Bash(docker build:*)",
+      "Bash(go get:*)",
+      "Bash(docker run:*)"
+    ]
+  }
+}

@@ -1,0 +1,41 @@
+datasource:
+  name: sina
+
+stocks:
+  - code: "600519"
+    name: "贵州茅台"
+  - code: "000001"
+    name: "平安银行"
+
+rules:
+  - name: "茅台突破MA60"
+    type: price_above_ma
+    enabled: true
+    level: warning
+    params:
+      stock_code: "600519"
+      period: 60
+
+  - name: "平安银行突破MA20"
+    type: price_above_ma
+    enabled: true
+    level: info
+    params:
+      stock_code: "000001"
+      period: 20
+
+notifiers:
+  serverchan:
+    enabled: false
+    send_key: "your-send-key-here"
+
+  dingtalk:
+    enabled: false
+    webhook: ""
+
+  feishu:
+    enabled: false
+    webhook: "https://open.feishu.cn/open-apis/bot/v2/hook/your-webhook-key"
+
+schedule:
+  cron: "0 */5 9-15 * * 1-5"
