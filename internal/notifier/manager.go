@@ -2,7 +2,9 @@ package notifier
 
 import (
 	"context"
+	"log/slog"
 	"sync"
+	"time"
 
 	"stock-monitor/internal/model"
 )
@@ -27,7 +29,7 @@ func (m *Manager) Add(n Notifier) {
 	m.notifiers = append(m.notifiers, n)
 }
 
-// Notify 发送通知到所有渠道
+// Notify 发送通知到所有渠道（单个通知超时30秒）
 func (m *Manager) Notify(ctx context.Context, alert *model.Alert) error {
 	m.mu.RLock()
 	notifiers := make([]Notifier, len(m.notifiers))
@@ -39,7 +41,11 @@ func (m *Manager) Notify(ctx context.Context, alert *model.Alert) error {
 		wg.Add(1)
 		go func(notifier Notifier) {
 			defer wg.Done()
-			_ = notifier.Send(ctx, alert)
+			sendCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+			defer cancel()
+			if err := notifier.Send(sendCtx, alert); err != nil {
+				slog.Error("通知发送失败", "notifier", notifier.Name(), "error", err)
+			}
 		}(n)
 	}
 	wg.Wait()

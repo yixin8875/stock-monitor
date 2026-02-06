@@ -9,7 +9,8 @@
       "Bash(curl:*)",
       "Bash(docker build:*)",
       "Bash(go get:*)",
-      "Bash(docker run:*)"
+      "Bash(docker run:*)",
+      "Bash(find:*)"
     ]
   }
 }

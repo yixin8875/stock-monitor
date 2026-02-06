@@ -59,7 +59,9 @@ func (s *Store) saveUnsafe() error {
 func (s *Store) GetStocks() []StockItem {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	return s.data.Stocks
+	result := make([]StockItem, len(s.data.Stocks))
+	copy(result, s.data.Stocks)
+	return result
 }
 
 // AddStock 添加股票
@@ -87,7 +89,9 @@ func (s *Store) DeleteStock(code string) error {
 func (s *Store) GetRules() []RuleItem {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	return s.data.Rules
+	result := make([]RuleItem, len(s.data.Rules))
+	copy(result, s.data.Rules)
+	return result
 }
 
 // AddRule 添加规则

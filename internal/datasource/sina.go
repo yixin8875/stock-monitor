@@ -17,6 +17,8 @@ import (
 	"golang.org/x/text/transform"
 )
 
+var quoteRegexp = regexp.MustCompile(`var hq_str_(\w+)="([^"]*)"`)
+
 // klineAPIResponse K线API响应结构
 type klineAPIResponse struct {
 	Data struct {
@@ -27,18 +29,41 @@ type klineAPIResponse struct {
 
 // SinaDataSource 新浪数据源
 type SinaDataSource struct {
-	client *http.Client
+	client     *http.Client
+	maxRetries int
 }
 
 // NewSinaDataSource 创建新浪数据源
 func NewSinaDataSource() *SinaDataSource {
 	return &SinaDataSource{
-		client: &http.Client{Timeout: 10 * time.Second},
+		client:     &http.Client{Timeout: 10 * time.Second},
+		maxRetries: 3,
 	}
 }
 
 func (s *SinaDataSource) Name() string {
 	return "sina"
+}
+
+// doWithRetry 带指数退避重试的HTTP请求
+func (s *SinaDataSource) doWithRetry(req *http.Request) (*http.Response, error) {
+	var lastErr error
+	for i := 0; i < s.maxRetries; i++ {
+		if i > 0 {
+			select {
+			case <-req.Context().Done():
+				return nil, req.Context().Err()
+			case <-time.After(time.Duration(i) * time.Second):
+			}
+		}
+		resp, err := s.client.Do(req)
+		if err != nil {
+			lastErr = err
+			continue
+		}
+		return resp, nil
+	}
+	return nil, fmt.Errorf("请求失败(重试%d次): %w", s.maxRetries, lastErr)
 }
 
 // formatCode 格式化股票代码
@@ -63,7 +88,7 @@ func (s *SinaDataSource) GetRealTimeQuote(ctx context.Context, codes []string) (
 	}
 	req.Header.Set("Referer", "https://finance.sina.com.cn")
 
-	resp, err := s.client.Do(req)
+	resp, err := s.doWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -81,8 +106,7 @@ func (s *SinaDataSource) GetRealTimeQuote(ctx context.Context, codes []string) (
 
 // parseQuoteResponse 解析行情响应
 func (s *SinaDataSource) parseQuoteResponse(body string, codes []string) ([]*model.Stock, error) {
-	re := regexp.MustCompile(`var hq_str_(\w+)="([^"]*)"`)
-	matches := re.FindAllStringSubmatch(body, -1)
+	matches := quoteRegexp.FindAllStringSubmatch(body, -1)
 
 	var stocks []*model.Stock
 	for _, match := range matches {
@@ -135,7 +159,7 @@ func (s *SinaDataSource) GetKLine(ctx context.Context, code string, ktype model.
 	}
 	req.Header.Set("Referer", "https://finance.sina.com.cn")
 
-	resp, err := s.client.Do(req)
+	resp, err := s.doWithRetry(req)
 	if err != nil {
 		return nil, err
 	}

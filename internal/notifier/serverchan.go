@@ -52,5 +52,9 @@ func (s *ServerChan) Send(ctx context.Context, alert *model.Alert) error {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Server酱通知失败, 状态码: %d", resp.StatusCode)
+	}
+
 	return nil
 }

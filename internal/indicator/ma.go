@@ -1,21 +1,22 @@
 package indicator
 
-// MA 计算移动平均线
+// MA 计算移动平均线（滑动窗口，O(n)复杂度）
 func MA(closes []float64, period int) []float64 {
 	if len(closes) < period {
 		return nil
 	}
 
 	result := make([]float64, len(closes))
-	for i := range result {
-		if i < period-1 {
-			result[i] = 0
-			continue
-		}
-		sum := 0.0
-		for j := 0; j < period; j++ {
-			sum += closes[i-j]
-		}
+	// 计算第一个窗口的和
+	sum := 0.0
+	for i := 0; i < period; i++ {
+		sum += closes[i]
+	}
+	result[period-1] = sum / float64(period)
+
+	// 滑动窗口：加入新值，移除旧值
+	for i := period; i < len(closes); i++ {
+		sum += closes[i] - closes[i-period]
 		result[i] = sum / float64(period)
 	}
 	return result
